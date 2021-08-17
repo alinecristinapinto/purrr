@@ -21,7 +21,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### purrr? 
+# purrr? 
 
 <div style="display:flex; align-items:center; justify-content:space-between">
   <img src="https://purrr.tidyverse.org/logo.png" 
@@ -32,7 +32,7 @@ knitr::opts_chunk$set(echo = TRUE)
   </p>
 </div>
 
-### Programação Funcional (PF) e purrr
+# Programação Funcional (PF) e purrr
 
 <p>
 [Programação Funcional](https://towardsdatascience.com/why-developers-are-falling-in-love-with-functional-programming-13514df4048e), de forma simplificada, é um paradigma de programação que prega pela construção de funções para *variáveis imutáveis* com a finalidade de evitar *side effects*. Sendo assim, a escrita de código é feita apenas através de *funções puras*. *Funções puras* nunca modificam o objeto que recebem, apenas criam novas como resposta, diferente de funções impuras que podem depender de alguma variável global e como resultado gerar respostas diferentes para uma mesma entrada.
@@ -52,12 +52,225 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas *i
 
 * Visto que R é fracamente tipado, as funções `map` possuem seu tipo de retorno descritas: `map_int`, `map_dbl`, etc.
 
-### Tutorial
+# Tutorial
 
 Para esse relatório, abordaremos algumas funções do pacote `purrr` com o banco de dados de `viagens` que pode ser encontrado [aqui](http://www.portaltransparencia.gov.br/download-de-dados/viagens). Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Podemos também importar o *tidyverse*.\
 ```{r}
 require(purrr)
 ```
 
+
+A seguir serão apresentadas as funções de uma maneira mais clara sobre a sua utilização. 
+
+## Map 
+
+A família map tem como objetivo substituir os laços do for, com ela, laços que teriam inúmeras linhas ficam resumidos a apenas uma.  
+
+* map():  Aplica uma função em uma lista sem a necessidade de criar laços para cada objeto, ela retorna uma lista com o mesmo comprimento (.x) e permite que valores sejam fixados.
+
+* Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado
+
+  map_lgl(.x, .f, ...): Para valores lógicos (booleanos)
+  
+  map_chr(.x, .f, ...): Para caracteres (strings)
+  
+  map_int(.x, .f, ...): Para números inteiros
+  
+  map_dbl(.x, .f, ...): Para números reais (vetor duplo)
+  
+  map_dfr(.x, .f, ..., .id = NULL): Retorna um data frame onde as linhas estão vinculadas a uma coluna
+  
+  map_dfc(.x, .f, ...): Retorna um data frame onde as colunas estão vinculadas a uma linha
+
+* walk(.x, .f, ...): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais, imprimir coisas na tela e salvar diversos arquivos de uma vez.
+
+* map_if(): Aplica a função apenas para os elementos de .x que se enquadram em uma determinada característica.
+
+* Argumentos
+.x: Um vetor imutável ou uma lista 
+.f: Uma função, fórmula ou vetor não necessariamente imutável
+.id: Para strings ou .if strings
+
+### Exemplo
+```
+map(~vroom::vroom(.x, locale = locale(encoding = "ISO-8859-1"))) %>% 
+  set_names(nomes_arquivos)
+
+```
+
+## Modify
+
+A familia modify é um atalho para x[[i]] <- f(x[[i]]); return(x), onde você altera apenas um elemento e mantém o restante.
+
+modify_if(): modifica elementos que possuem uma característica previamente determinada
+modify_at(): modifica elementos por nomes ou posições.
+modify_depth(): modifica elementos pelo nível ou sua posição no data frame.
+
+* Argumentos
+
+  .x: Um vetor imutável ou uma lista 
+  
+  .f: Uma função, fórmula ou vetor não necessariamente imutável
+  
+  …: Argumentos adicionais para .f.
+  
+  .p: um vetor lógico do mesmo tamanho que .x
+  
+  .at: Um vetor de strings ou um vetor numérico de posições.
+  
+  .depth: nível ou sua posição no data frame.
+  
+  .ragged.: se aplicará aos erros 
+  
+
+### Exemplo
+```
+modify(~{filter(.x, value != "Brasil") %>% top_n(10)})
+
+```
+
+## Set Names
+
+set_names define nomes em um vetor.
+
+* Argumentos
+
+  .x: Um vetor para nomear
+  
+  nm: Nomes que serão definidos.
+
+### Exemplo
+```
+set_names(nomes_arquivos)
+
+```
+
+## Pluck
+
+É uma generalização de “[[”, de modo que permite alterar dados em um banco de maneira bastante eficaz, pois ele aceita posições, strings, funções que manipulam objetos e retornam alguma peça interna, entre outras. 
+
+* Argumentos
+  .x: Um vetor ou uma lista 
+  
+  .default: Valor a ser usado se o destino estiver vazio ou ausente. 
+  
+  …: Argumentos que serão indexados ao objeto podendo ser posições, strings ou funções internas.
+  
+  attr: um nome atribuido como string
+
+### Exemplo
+```
+walk(nomes_arquivos,
+     ~View(pluck(arquivos, .x), title = .x))
+```
+
+## Reduce
+
+Reduz uma lista a um único valor, aplicando uma função binaria
+
+  * reduce(.x, .f, ..., .init): Aplica a função da esquerda para a direita com um vetor.
+  
+  * reduce_right(.x, .f, ..., .init): Aplica a função da direita para a esquerda com um vetor.
+  
+  * reduce2(.x, .y, .f, ..., .init): Aplica a função da esquerda para a direita com dois vetores.
+  
+  * reduce2_right(.x, .y, .f, ..., .init): Aplica a função da direita para a esquerda com dois vetores.
+  
+* Argumentos
+  .x: Um vetor imutável ou uma lista 
+  
+  .y: Um segundo vetor
+  
+  .f: Uma função, fórmula ou vetor não necessariamente imutável
+  
+  …: Argumentos adicionais para .f.
+  
+  .init: define que o primeiro valor de .x seja utilizado na acumulação
+  
+
+### Exemplo
+```
+dados_juntos <- reduce(arquivos, inner_join)
+
+```
+
+## Imap 
+lmap: Aplica uma função a elementos de lista de um vetor, eles operam exclusivamente em funções que pegam e retornam uma lista (ou data frames). Assim, em vez de mapear os elementos de uma lista (como em .x[[i]]), eles aplicam uma função .f a cada subconjunto de tamanho 1 dessa lista (como em .x[i]). Chamamos esses elementos de elementos de lista).   
+
+* imap():  aplica uma função a cada elemento de lista de um vetor e seu índice
+
+* Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado
+
+  imap_lgl(.x, .f, ...): Para valores lógicos (booleanos)
+  
+  imap_chr(.x, .f, ...): Para caracteres (strings)
+  
+  imap_int(.x, .f, ...): Para números inteiros
+  
+  imap_dbl(.x, .f, ...): Para números reais (vetor duplo)
+  
+  imap_dfr(.x, .f, ..., .id = NULL): Retorna um data frame onde as linhas estão vinculadas a uma coluna
+  
+  imap_dfc(.x, .f, ...): Retorna um data frame onde as colunas estão vinculadas a uma linha
+  
+  iwalk(.x, .f, ...): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais e imprimir coisas na tela.
+  
+
+* imap_if(): Aplica a função apenas para os elementos que se enquadram em uma determinada característica .x.
+
+* imap_at(): Aplica a função apenas para elementos em determinada posição ou nome
+
+* Argumentos
+  .x: Um vetor imutável ou uma lista 
+  
+  .f: Uma função, fórmula ou vetor não necessariamente imutável
+  
+  .id: Para strings ou .if strings
+
+### Exemplo
+```
+graficos_finais <- imap(freq_viagem, graficos_freq_viagem)
+
+arquivos %>% imap_dfc( # Apenas pra ver o número de linhas de cada banco
+  ~nrow(pluck(arquivos, .y)))
+
+```
+
+## Slowly e insistently
+Ambas as funções determinam o tempo para a próxima chamada de função.
+
+* slowly:  Aplica uma função e a modifica para esperar um determinado período de tempo entre cada chamada.
+
+* insistently:  Aplica uma função e a modifica para tentar novamente um determinado período de tempo em caso de erro.
+
+* Argumentos
+  .f: Uma função que será aplicada
+  
+  rate: Taxa que determina o tempo de espera 
+  
+  quiet: Se FALSE, imprime uma mensagem exibindo quanto tempo até a próxima solicitação 
+
+
+## Rate Delay
+A função *rate_delay* cria configurações para taxas de atraso, na mesma família existem a *rate_backoff* e a *rate_sleep*
+
+* Argumentos
+  x: Argumento que será testado
+  
+  pause: Atraso entre as tentativas em segundos
+  
+  max_times: Número máximo de solicitações a serem tentadas 
+  
+  rate_backoff: usa um back-off exponencial para que cada solicitação espere *pause_base* * 2^i segundos, até um máximo de *pause_cap* segundos.
+  
+  pause_min:Tempo mínimo de espera no backoff; geralmente só é necessário se você precisar de pausas de menos de um segundo (o que pode não ser bom para o servidor, use com cuidado!).
+  
+  jitter: Se deve introduzir um jitter aleatório no tempo de espera.
+
+### Exemplo
+```
+walk(graficos_finais_gasto_porviagem, slowly(print, rate = rate_delay(5)))
+
+```
 
 
