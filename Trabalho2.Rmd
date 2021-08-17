@@ -364,3 +364,170 @@ graficos_finais_gasto_porviagem <- map2(
 walk(graficos_finais_gasto_porviagem, slowly(print, rate = rate_delay(5)))
 ```
 
+# Funcões purrr vs nativos do R
+
+## map vs for vs apply
+
+Como já mencionado, as funções do purrr seguem a PF, sendo o `map` uma das abstrações de estruturas de repetição. Para esse primeiro exemplo optamos por utilizar o comando `for`, presente em várias linguagens, e o `lapply` da família apply do R.
+
+Para esse exemplo queremos criar uma lista que contenha o nome das colunas dos nossos dados: 
+
+A função `map`:
+
+```
+nomes_colunas <- map(arquivos, colnames)
+```
+
+O comando `for`:
+
+```
+nomes_colunas_base <- list()
+for (i in seq_along(arquivos)) {
+  nomes_colunas_base[i] <- list(colnames(arquivos[[i]])) 
+}
+names(nomes_colunas_base) <- c("Pagamento", "Passagem", "Trecho", "Viagem")
+```
+
+O comando `lapply`:
+
+```
+nomes_colunas_apply <- lapply(arquivos, colnames)
+```
+
+A primeira vista, vemos uma grande diferença entre o `map` e o `for`. O `map` é muito mais simples, legível e já retorna uma lista com o nome de nossos bancos, enquanto o `for` custa muitas linhas e necessita de formatação dos dados no final. Entretanto, não é tão visível as vantagens do `map` para o `lapply`. Decerto, as vantagens não são substanciais, mas o `map` possui auxiliares que permitem escrever um código compacto para funções anônimas e em um contexto real não usaremos apenas o `map` tornando o pacote `purrr` muito útil.   
+
+## map2 / pmap vs for vs apply
+
+As funções `map2` e `pmap` funcionam de forma similiar, sendo que enquanto a `map2` aceita duas listas e retorna o resultado em uma, a `pmap` aceita três ou mais.
+
+**Com 2 listas**: para esse exemplo iremos comparar o tamanho de dois objetos e vamos aplicá-la nas listas nomes_coluna e nomes_coluna_base:
+
+```
+igual_ou_diferente <- function(x, y) {
+  if (length(x) == length(y)) return(T)
+  else return(F)
+}
+````
+
+A função `map2`:
+
+```
+resultado2purrr <- map2(nomes_colunas, nomes_colunas_base, igual_ou_diferente)
+```
+
+O comando `for`:
+
+```
+resultado2base <- list()
+for (i in seq_along(nomes_colunas)) {
+  resultado2base[i] <- igual_ou_diferente(nomes_colunas[i], nomes_colunas_base[i]) 
+}
+```
+
+O comando `lapply`:
+
+```
+resultado2apply <- lapply(nomes_colunas, nomes_colunas_apply, FUN = igual_ou_diferente)
+```
+
+**Com 3 listas**: 
+
+```
+igual_ou_diferente3 <- function(x, y, z) {
+  if (length(x) == length(y) || length(x) == length(z)) return(T)
+  else return(F)
+}
+```
+
+A função `pmap`:
+
+```
+resultado3purrr <- pmap(list(nomes_colunas, nomes_colunas_apply, nomes_colunas_base), igual_ou_diferente3)
+```
+
+O comando `for`:
+
+```
+resultado3base <- list()
+for (i in seq_along(nomes_colunas)) {
+  resultado3base[i] <- igual_ou_diferente3(nomes_colunas[i], nomes_colunas_base[i], nomes_colunas_apply[i]) 
+}
+```
+
+O comando `lapply`:
+
+```
+resultado3apply <- lapply(nomes_colunas, nomes_colunas_apply, nomes_colunas_base, FUN = igual_ou_diferente3)
+```
+
+Por meio desses exemplos, observamos mais uma vez como essas operações quando realizadas com um `for` parecem possuir maior complexidade na leitura e custam mais linhas, enquanto o `purrr` e o `apply` são mais simples. 
+
+### o caso especial imap
+
+Visto que o `imap` é um caso particular do `map2`, a seguir estamos interessados em obter não só os transportes como também sua posição (ordem):
+
+```
+freq_viagem[[1]] <- freq_viagem[[1]] %>% 
+  arrange(desc(n))
+```
+
+A função `imap`:
+
+```
+ordem_do_transporte_purrr <- imap(freq_viagem[[1]][[1]], ~paste(.x, .y, sep = "/"))
+```
+
+O comando `for`:
+
+```
+ordem_do_transporte_base <- list()
+for (i in seq_along(freq_viagem[[1]][[1]])) {
+  ordem_do_transporte_base[i] <- paste(freq_viagem[[1]][[1]][[i]], i, sep = '/')
+}
+```
+
+## walk vs for 
+
+A função `walk` funciona de forma similiar ao `map` e suas variações, mas a usamos quando estamos interessados em aplicar uma função que performa uma ação (logo a mesma não possui retorno de dados)
+
+No exemplo a seguir, buscamos imprimir na tela a frequência do meio de transporte, origem e destino das viagens registradas em 2021:
+
+A função `walk`:
+
+```
+walk(freq_viagem, print)
+```
+
+O comando `for`:
+
+```
+for (i in seq_along(freq_viagem)){
+  print(freq_viagem[i])
+}
+```
+
+Mais uma vez, notamos que a função `walk` possui uma legibilidade melhor que o `for`.
+
+## pluck vs seleção nativa   
+
+Por fim, para esse exemplo buscamos selecionar um elemento pelo seu índice. Primeiramente, selecionamos o país mais visitado:
+
+```
+freq_viagem[[3]] <- freq_viagem[[3]] %>% 
+  arrange(desc(n))
+```
+
+A função `pluck`:
+
+```
+pais_mais_visitados_purrr <- pluck(freq_viagem, 3, 1, 1)
+```
+
+Pelo R:
+
+```
+pais_mais_visitados_base <- freq_viagem[[3]][[1]][[1]]
+```
+
+Ao saber o índice exato que desejamos, aplicamos das duas formas. Decerto, é uma operação simples para o R básico, porém a legibilidade novamente é muito mais fácil pelo `purrr` após saber a finalidade da função do que pelo R cheio de colchetes.    
+
