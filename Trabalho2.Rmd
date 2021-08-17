@@ -68,6 +68,12 @@ A família map tem como objetivo substituir os laços do for, com ela, laços qu
 
 * map():  Aplica uma função em uma lista sem a necessidade de criar laços para cada objeto, ela retorna uma lista com o mesmo comprimento (.x) e permite que valores sejam fixados.
 
+* map2(): Funciona de maneira semelhante a map(), mas se diferencia ao aplicar uma função em 2 listas distintas simultaneamente retornando apenas uma lista.
+
+* imap(): Aplica uma função a elementos de lista de um vetor, eles operam exclusivamente em funções que pegam e retornam uma lista (ou data frames). Assim, em vez de mapear os elementos de uma lista (como em .x[[i]]), eles aplicam uma função .f a cada subconjunto de tamanho 1 dessa lista (como em .x[i]). Chamamos esses elementos de elementos de lista).
+
+* pmap(): Aplica uma função a n elementos ao mesmo tempo, retornando uma única lista como resultado.
+
 * Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado
 
   map_lgl(.x, .f, ...): Para valores lógicos (booleanos)
@@ -82,14 +88,68 @@ A família map tem como objetivo substituir os laços do for, com ela, laços qu
   
   map_dfc(.x, .f, ...): Retorna um data frame onde as colunas estão vinculadas a uma linha
 
-* walk(.x, .f, ...): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais, imprimir coisas na tela e salvar diversos arquivos de uma vez.
-
 * map_if(): Aplica a função apenas para os elementos de .x que se enquadram em uma determinada característica.
 
+* map_at(): Aplica a função apenas para elementos em determinada posição ou nome
+
 * Argumentos
-.x: Um vetor imutável ou uma lista 
-.f: Uma função, fórmula ou vetor não necessariamente imutável
-.id: Para strings ou .if strings
+
+  .x: Um vetor imutável ou uma lista 
+
+  .f: Uma função, fórmula ou vetor não necessariamente imutável
+
+  .id: Para strings ou .if strings
+
+
+** Observação: Todas as funções da família map funcionam com os mesmos sufixos.
+
+
+## Walk 
+
+* walk(): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais, imprimir coisas na tela e salvar diversos arquivos de uma vez.   
+
+* Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado
+
+  walk_lgl(.x, .f, ...): Para valores lógicos (booleanos)
+  
+  walk_chr(.x, .f, ...): Para caracteres (strings)
+  
+  walk_int(.x, .f, ...): Para números inteiros
+  
+  walk_dbl(.x, .f, ...): Para números reais (vetor duplo)
+  
+  walk_dfr(.x, .f, ..., .id = NULL): Retorna um data frame onde as linhas estão vinculadas a uma coluna
+  
+  walk_dfc(.x, .f, ...): Retorna um data frame onde as colunas estão vinculadas a uma linha
+  
+  
+* walk_if(): Aplica a função apenas para os elementos que se enquadram em uma determinada característica .x.
+
+* walk_at(): Aplica a função apenas para elementos em determinada posição ou nome
+
+* Argumentos
+
+  .x: Um vetor imutável ou uma lista 
+  
+  .f: Uma função, fórmula ou vetor não necessariamente imutável
+  
+  .id: Para strings ou .if strings
+
+### Exemplo
+
+```
+walk(nomes_arquivos,
+     ~View(pluck(arquivos, .x), title = .x))
+
+nomes_colunas <- map(arquivos, colnames)
+reduce(nomes_colunas, intersect) # Apenas pra ver qual coluna está em todas
+arquivos %>% imap_dfc( # Apenas pra ver o número de linhas de cada banco
+  ~nrow(pluck(arquivos, .y)))
+
+dados_juntos <- reduce(arquivos, inner_join)
+```
+Dentro da variável freq_viagem existem três tabelas e a função walk foi utilizada para printar as tabelas presente nela.
+
 
 ## Set Names
 
@@ -171,73 +231,6 @@ reduce(nomes_colunas, intersect) # Apenas pra ver qual coluna está em todas
 
 A próxima etapa será juntar todos os bancos de dados para podermos trabalhar melhor. Antes disso, contudo, vamos observar quais colunas estão presentes em todos os bancos, e qual o tamanho de cada banco. Salvamos apenas os nomes de colunas em *nomes_colunas*, usando uma aplicação simples da função *map*, que retorna uma lista de vetores de caracteres. A função *intersect* retorna a intersecção entre apenas dois argumentos. Suponha que se queira a interseção entre A, B e C. Uma maneira de fazer isso é através de *intersect(intersect(intersect(A, B), C), D)*. A função *reduce(list(A, B, C, D), intersect)* faz exatamente isso. 
 
-## Imap 
-lmap: Aplica uma função a elementos de lista de um vetor, eles operam exclusivamente em funções que pegam e retornam uma lista (ou data frames). Assim, em vez de mapear os elementos de uma lista (como em .x[[i]]), eles aplicam uma função .f a cada subconjunto de tamanho 1 dessa lista (como em .x[i]). Chamamos esses elementos de elementos de lista).   
-
-* imap():  aplica uma função a cada elemento de lista de um vetor e seu índice
-
-* Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado
-
-  imap_lgl(.x, .f, ...): Para valores lógicos (booleanos)
-  
-  imap_chr(.x, .f, ...): Para caracteres (strings)
-  
-  imap_int(.x, .f, ...): Para números inteiros
-  
-  imap_dbl(.x, .f, ...): Para números reais (vetor duplo)
-  
-  imap_dfr(.x, .f, ..., .id = NULL): Retorna um data frame onde as linhas estão vinculadas a uma coluna
-  
-  imap_dfc(.x, .f, ...): Retorna um data frame onde as colunas estão vinculadas a uma linha
-  
-  iwalk(.x, .f, ...): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais e imprimir coisas na tela.
-  
-
-* imap_if(): Aplica a função apenas para os elementos que se enquadram em uma determinada característica .x.
-
-* imap_at(): Aplica a função apenas para elementos em determinada posição ou nome
-
-* Argumentos
-  .x: Um vetor imutável ou uma lista 
-  
-  .f: Uma função, fórmula ou vetor não necessariamente imutável
-  
-  .id: Para strings ou .if strings
-
-### Exemplo
-
-```
-arquivos %>% imap_dfc( # Apenas pra ver o número de linhas de cada banco
-  ~nrow(pluck(arquivos, .y)))
-
-```
-
-Esse exemplo faz a segunda parte das análises iniciais: computa o número de linhas de cada banco. Se usássemos *map* no lugar de *imap*, teríamos acesso rápido apenas ao banco em si, mas não ao seu indexador (seu nome) dentro da lista, que é o que usámos para acessá-lo com *pluck*.
-
-```
-dados_juntos <- reduce(arquivos, inner_join)
-
-dados_juntos <- dados_juntos %>% 
-  select(c(1, 4, 6, 9:24, 26, 40, 42, 44))
-
-dados_juntos <- dados_juntos %>% 
-  distinct(.keep_all = T)
-
-dados_viagem_gasto <- dados_juntos %>% 
-  filter(`Tipo de pagamento` == "PASSAGEM") %>% 
-  select(c(1:3, 5:12))
-
-freq_viagem <- dados_viagem_gasto %>% 
-  select(c(1, 5, 6, 9)) %>%
-  distinct(.keep_all = T) %>% select(-1) %>% 
-  map(~count(
-    as_tibble(.x), across(everything())
-  ))
-
-
-```
-
-Juntamos todos os bancos, em um uso bastante natural e agradável da função *reduce*. A função *inner_join* do pacote *dplyr* manterá apenas as linhas cujas colunas do Identificador sejam comuns em todos os bancos. Depois, ainda usando dplyr, fazemos algumas modificações rotineiras, e criamos dataframes específicos relativos à frequência de viagem e aos gastos. Usamos a função *across*, que, embora seja do *dplyr*, é mais uma ferramenta que ajuda a deixar o código mais próximo da programação funcional. 
 
 ## Modify
 
