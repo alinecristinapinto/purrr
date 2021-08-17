@@ -280,10 +280,17 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 </div>
 <div id="tutorial" class="section level1">
 <h1>Tutorial</h1>
-<p>Para esse relatório, abordaremos algumas funções do pacote <code>purrr</code> com o banco de dados de <code>viagens</code> que pode ser encontrado <a href="http://www.portaltransparencia.gov.br/download-de-dados/viagens">aqui</a>. Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Podemos também importar o <em>tidyverse</em>.<br />
+<p>Para esse relatório, abordaremos algumas funções do pacote <code>purrr</code> com o banco de dados de <code>viagens realizadas a serviço</code> que pode ser encontrado <a href="http://www.portaltransparencia.gov.br/download-de-dados/viagens">aqui</a>. Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Como o <em>purrr</em> é um pacote do <em>tidyverse</em>, e, ao longo do tutorial, usaremos funções de outros de seus pacotes, importaremos todo o <em>tidyverse</em>.<br />
 </p>
-<pre class="r"><code>require(purrr)</code></pre>
-<pre><code>## Loading required package: purrr</code></pre>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
+## ✓ tibble  3.1.2     ✓ dplyr   1.0.6
+## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
+## ✓ readr   1.4.0     ✓ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
 <p>A seguir serão apresentadas as funções de uma maneira mais clara sobre a sua utilização.</p>
 <div id="map" class="section level2">
 <h2>Map</h2>
@@ -301,32 +308,6 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <li><p>map_if(): Aplica a função apenas para os elementos de .x que se enquadram em uma determinada característica.</p></li>
 <li><p>Argumentos .x: Um vetor imutável ou uma lista .f: Uma função, fórmula ou vetor não necessariamente imutável .id: Para strings ou .if strings</p></li>
 </ul>
-<div id="exemplo" class="section level3">
-<h3>Exemplo</h3>
-<pre><code>map(~vroom::vroom(.x, locale = locale(encoding = &quot;ISO-8859-1&quot;))) %&gt;% 
-  set_names(nomes_arquivos)
-</code></pre>
-</div>
-</div>
-<div id="modify" class="section level2">
-<h2>Modify</h2>
-<p>A familia modify é um atalho para x[[i]] &lt;- f(x[[i]]); return(x), onde você altera apenas um elemento e mantém o restante.</p>
-<p>modify_if(): modifica elementos que possuem uma característica previamente determinada modify_at(): modifica elementos por nomes ou posições. modify_depth(): modifica elementos pelo nível ou sua posição no data frame.</p>
-<ul>
-<li><p>Argumentos</p>
-<p>.x: Um vetor imutável ou uma lista</p>
-<p>.f: Uma função, fórmula ou vetor não necessariamente imutável</p>
-<p>…: Argumentos adicionais para .f.</p>
-<p>.p: um vetor lógico do mesmo tamanho que .x</p>
-<p>.at: Um vetor de strings ou um vetor numérico de posições.</p>
-<p>.depth: nível ou sua posição no data frame.</p>
-<p>.ragged.: se aplicará aos erros</p></li>
-</ul>
-<div id="exemplo-1" class="section level3">
-<h3>Exemplo</h3>
-<pre><code>modify(~{filter(.x, value != &quot;Brasil&quot;) %&gt;% top_n(10)})
-</code></pre>
-</div>
 </div>
 <div id="set-names" class="section level2">
 <h2>Set Names</h2>
@@ -336,10 +317,16 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <p>.x: Um vetor para nomear</p>
 <p>nm: Nomes que serão definidos.</p></li>
 </ul>
-<div id="exemplo-2" class="section level3">
+<div id="exemplo" class="section level3">
 <h3>Exemplo</h3>
-<pre><code>set_names(nomes_arquivos)
+<pre><code>nomes_arquivos &lt;- c(&quot;Pagamento&quot;, &quot;Passagem&quot;, &quot;Trecho&quot;, &quot;Viagem&quot;)
+
+arquivos &lt;- glue::glue(&#39;2021_{nomes_arquivos}.csv&#39;) %&gt;% 
+  map(~vroom::vroom(.x, locale = locale(encoding = &quot;ISO-8859-1&quot;))) %&gt;% 
+  set_names(nomes_arquivos)
 </code></pre>
+<p>Inicialmente construímos um vetor com todos os nomes dos arquivos, usando a função <em>glue</em> do pacote <em>glue</em> (presente no <em>tidyverse</em>), que provê um substituto mais moderno da função <em>paste</em>. A função <em>map</em> passará cada um desses nomes de arquivos para a função <em>vroom</em> do pacote <em>vroom</em> (também presente no <em>tidyverse</em>), que lerá os dados. Os arquivos, lidos como dataframes, serão salvos em uma lista, formato de saída padrão do <em>map</em>. Por fim, a função <em>set_names</em> do purrr dará um nome a cada elemento-base da lista, isto é, dará um nome a cada um dos quatro banco de dados.</p>
+<p>Duas observações: * O código <em>glue::glue(‘2021_{nomes_arquivos}.csv’)</em> é, no fundo, uma aplicação de <em>map</em>. Ele pode ser reescrito como: <em>map_chr(nomes_arquivos, paste0(‘2021_1’, .x, ‘.csv’))</em>. * Outra função para leitura de dados, como a <em>read.csv</em> ou a <em>data.table::fread</em>, poderia ser usada. A função <em>vroom</em> foi escolhida porque utiliza a abordagem de <em>lazy evaluation</em> para a leitura de dados, conceito proveniente da programação funcional (que tem tudo a ver com o pacote purrr) e que, nesse caso, acelera a leitura de dados. Essa função é ideal para leitura de bases largas em que você já sabe relativamente bem o que você vai usar daqueles dados. Leia mais <a href="https://vroom.r-lib.org/">aqui</a>.</p>
 </div>
 </div>
 <div id="pluck" class="section level2">
@@ -351,10 +338,11 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <p>…: Argumentos que serão indexados ao objeto podendo ser posições, strings ou funções internas.</p>
 <p>attr: um nome atribuido como string</p></li>
 </ul>
-<div id="exemplo-3" class="section level3">
+<div id="exemplo-1" class="section level3">
 <h3>Exemplo</h3>
 <pre><code>walk(nomes_arquivos,
      ~View(pluck(arquivos, .x), title = .x))</code></pre>
+<p>O código acima permite a visualização dos quatro bancos de dados através de uma única linha de código. Poderia ser utilizado <em>map</em> no lugar de <em>walk</em>, sem problemas, mas o <em>walk</em> foi feito especialmente para esses casos em que o principal objetivo da função não é retornar algo em específico, mas gerar efeitos colaterais (nesse caso, o efeito colateral da função <em>View</em> é abrir uma janela nova que exibe o dataframe). O código <em>pluck(arquivos, .x)</em> extrai o .x-ésimo banco (entre os quatro possíveis) em <em>arquivos</em>.</p>
 </div>
 </div>
 <div id="reduce" class="section level2">
@@ -371,10 +359,11 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <p>…: Argumentos adicionais para .f.</p>
 <p>.init: define que o primeiro valor de .x seja utilizado na acumulação</p></li>
 </ul>
-<div id="exemplo-4" class="section level3">
+<div id="exemplo-2" class="section level3">
 <h3>Exemplo</h3>
-<pre><code>dados_juntos &lt;- reduce(arquivos, inner_join)
-</code></pre>
+<pre><code>nomes_colunas &lt;- map(arquivos, colnames)
+reduce(nomes_colunas, intersect) # Apenas pra ver qual coluna está em todas</code></pre>
+<p>A próxima etapa será juntar todos os bancos de dados para podermos trabalhar melhor. Antes disso, contudo, vamos observar quais colunas estão presentes em todos os bancos, e qual o tamanho de cada banco. Salvamos apenas os nomes de colunas em <em>nomes_colunas</em>, usando uma aplicação simples da função <em>map</em>, que retorna uma lista de vetores de caracteres. A função <em>intersect</em> retorna a intersecção entre apenas dois argumentos. Suponha que se queira a interseção entre A, B e C. Uma maneira de fazer isso é através de <em>intersect(intersect(intersect(A, B), C), D)</em>. A função <em>reduce(list(A, B, C, D), intersect)</em> faz exatamente isso.</p>
 </div>
 </div>
 <div id="imap" class="section level2">
@@ -396,13 +385,56 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <p>.f: Uma função, fórmula ou vetor não necessariamente imutável</p>
 <p>.id: Para strings ou .if strings</p></li>
 </ul>
-<div id="exemplo-5" class="section level3">
+<div id="exemplo-3" class="section level3">
 <h3>Exemplo</h3>
-<pre><code>graficos_finais &lt;- imap(freq_viagem, graficos_freq_viagem)
-
-arquivos %&gt;% imap_dfc( # Apenas pra ver o número de linhas de cada banco
+<pre><code>arquivos %&gt;% imap_dfc( # Apenas pra ver o número de linhas de cada banco
   ~nrow(pluck(arquivos, .y)))
 </code></pre>
+<p>Esse exemplo faz a segunda parte das análises iniciais: computa o número de linhas de cada banco. Se usássemos <em>map</em> no lugar de <em>imap</em>, teríamos acesso rápido apenas ao banco em si, mas não ao seu indexador (seu nome) dentro da lista, que é o que usámos para acessá-lo com <em>pluck</em>.</p>
+<pre><code>dados_juntos &lt;- reduce(arquivos, inner_join)
+
+dados_juntos &lt;- dados_juntos %&gt;% 
+  select(c(1, 4, 6, 9:24, 26, 40, 42, 44))
+
+dados_juntos &lt;- dados_juntos %&gt;% 
+  distinct(.keep_all = T)
+
+dados_viagem_gasto &lt;- dados_juntos %&gt;% 
+  filter(`Tipo de pagamento` == &quot;PASSAGEM&quot;) %&gt;% 
+  select(c(1:3, 5:12))
+
+freq_viagem &lt;- dados_viagem_gasto %&gt;% 
+  select(c(1, 5, 6, 9)) %&gt;%
+  distinct(.keep_all = T) %&gt;% select(-1) %&gt;% 
+  map(~count(
+    as_tibble(.x), across(everything())
+  ))
+
+</code></pre>
+<p>Juntamos todos os bancos, em um uso bastante natural e agradável da função <em>reduce</em>. A função <em>inner_join</em> do pacote <em>dplyr</em> manterá apenas as linhas cujas colunas do Identificador sejam comuns em todos os bancos. Depois, ainda usando dplyr, fazemos algumas modificações rotineiras, e criamos dataframes específicos relativos à frequência de viagem e aos gastos. Usamos a função <em>across</em>, que, embora seja do <em>dplyr</em>, é mais uma ferramenta que ajuda a deixar o código mais próximo da programação funcional.</p>
+</div>
+</div>
+<div id="modify" class="section level2">
+<h2>Modify</h2>
+<p>A familia modify é um atalho para x[[i]] &lt;- f(x[[i]]); return(x), onde você altera apenas um elemento e mantém o restante.</p>
+<p>modify_if(): modifica elementos que possuem uma característica previamente determinada modify_at(): modifica elementos por nomes ou posições. modify_depth(): modifica elementos pelo nível ou sua posição no data frame.</p>
+<ul>
+<li><p>Argumentos</p>
+<p>.x: Um vetor imutável ou uma lista</p>
+<p>.f: Uma função, fórmula ou vetor não necessariamente imutável</p>
+<p>…: Argumentos adicionais para .f.</p>
+<p>.p: um vetor lógico do mesmo tamanho que .x</p>
+<p>.at: Um vetor de strings ou um vetor numérico de posições.</p>
+<p>.depth: nível ou sua posição no data frame.</p>
+<p>.ragged.: se aplicará aos erros</p></li>
+</ul>
+<div id="exemplo-4" class="section level3">
+<h3>Exemplo</h3>
+<pre><code>
+freq_viagem &lt;- freq_viagem %&gt;% 
+  modify(~{filter(.x, value != &quot;Brasil&quot;) %&gt;% top_n(10)})
+</code></pre>
+<p><em>freq_viagem</em> é uma lista de dataframes, e cada dataframe é modificado de acordo com o código acima.</p>
 </div>
 </div>
 <div id="slowly-e-insistently" class="section level2">
@@ -427,11 +459,146 @@ arquivos %&gt;% imap_dfc( # Apenas pra ver o número de linhas de cada banco
 <p>pause_min:Tempo mínimo de espera no backoff; geralmente só é necessário se você precisar de pausas de menos de um segundo (o que pode não ser bom para o servidor, use com cuidado!).</p>
 <p>jitter: Se deve introduzir um jitter aleatório no tempo de espera.</p></li>
 </ul>
-<div id="exemplo-6" class="section level3">
+<div id="exemplo-5" class="section level3">
 <h3>Exemplo</h3>
-<pre><code>walk(graficos_finais_gasto_porviagem, slowly(print, rate = rate_delay(5)))
+<pre><code>
+graficos_freq_viagem &lt;- function (dados, nomes) {
+  dados %&gt;% 
+    ggplot(aes(fct_infreq(value), n)) + 
+    geom_col() +
+    coord_flip() +
+    labs(x = nomes,
+         y = &quot;Contagem&quot;,
+         title = glue::glue(&quot;Contagem de {nomes}&quot;))
+}
+
+graficos_finais &lt;- imap(freq_viagem, graficos_freq_viagem)
+
+walk(graficos_finais, slowly(print, rate = rate_delay(5)))
 </code></pre>
+<p>Aqui mostramos um uso da função <em>slowly</em>. Serão feitos três gráficos semelhantes, um para cada um dos bancos de dados em <em>freq_viagem</em> (lembrando que é uma lista de dataframes). É criada uma função que gerará o gráfico de acordo com o dataframe passado, os gráficos são gerados através de <em>imap</em> (note que a função dos gráficos recebe exatamente os dois argumentos .x e .y que <em>imap</em> passa) e salvos em <em>graficos_finais</em>. A função <em>walk</em> os exibe, com um intervalo de tempo entre eles, colocado usando a função <em>slowly</em>.</p>
+<p>Outro exemplO (usando map2, cross2 e passando funções como argumentos):</p>
+<pre><code>gasto_porviagem &lt;- dados_viagem_gasto %&gt;% 
+  mutate(Valor = as.numeric(str_replace(Valor, &quot;,&quot;, &quot;.&quot;))) %&gt;% 
+  group_by(`Identificador do processo de viagem`) %&gt;%
+  summarise(across(everything(), 
+                   ~ifelse(is.numeric(.x), sum(.x), first(.x)))) %&gt;% 
+  mutate(`Tipo de viagem` = ifelse(
+    `País - Origem ida` != `País - Destino ida`, &quot;Internacional&quot;,
+    ifelse(`UF - Origem ida` != `UF - Destino ida`, &quot;Interestadual&quot;,
+           &quot;Intraestadual&quot;))) %&gt;% 
+  ungroup() %&gt;% 
+  select(-c(6:11))
+
+variaveis_analise_gasto &lt;- c(&quot;Nome do órgão superior&quot;, &quot;Meio de transporte&quot;, &quot;Tipo de viagem&quot;)
+funcoes_analise_gasto &lt;- list(geom_violin(), geom_boxplot(), geom_jitter())
+combinacoes_analise_gasto &lt;- cross2(funcoes_analise_gasto,
+                                    variaveis_analise_gasto)
+
+graficos_gasto_porviagem &lt;- function (variavel, funcao_geom) {
+  gasto_porviagem %&gt;% 
+    ggplot(aes(get(variavel), Valor)) +
+    labs(x = variavel,
+         y = &quot;Gasto da viagem&quot;,
+         title = glue::glue(&quot;Gasto da viagem de acordo com {str_to_lower(variavel)}&quot;)) +
+    funcao_geom
+}
+
+graficos_finais_gasto_porviagem &lt;- map2(
+  .x = map(combinacoes_analise_gasto, 1), 
+  .y = map(combinacoes_analise_gasto, 2),
+  ~graficos_gasto_porviagem(.y, .x))
+
+walk(graficos_finais_gasto_porviagem, slowly(print, rate = rate_delay(5)))</code></pre>
 </div>
+</div>
+</div>
+<div id="funcões-purrr-vs-nativos-do-r" class="section level1">
+<h1>Funcões purrr vs nativos do R</h1>
+<div id="map-vs-for-vs-apply" class="section level2">
+<h2>map vs for vs apply</h2>
+<p>Como já mencionado, as funções do purrr seguem a PF, sendo o <code>map</code> uma das abstrações de estruturas de repetição. Para esse primeiro exemplo optamos por utilizar o comando <code>for</code>, presente em várias linguagens, e o <code>lapply</code> da família apply do R.</p>
+<p>Para esse exemplo queremos criar uma lista que contenha o nome das colunas dos nossos dados:</p>
+<p>A função <code>map</code>:</p>
+<pre><code>nomes_colunas &lt;- map(arquivos, colnames)</code></pre>
+<p>O comando <code>for</code>:</p>
+<pre><code>nomes_colunas_base &lt;- list()
+for (i in seq_along(arquivos)) {
+  nomes_colunas_base[i] &lt;- list(colnames(arquivos[[i]])) 
+}
+names(nomes_colunas_base) &lt;- c(&quot;Pagamento&quot;, &quot;Passagem&quot;, &quot;Trecho&quot;, &quot;Viagem&quot;)</code></pre>
+<p>O comando <code>lapply</code>:</p>
+<pre><code>nomes_colunas_apply &lt;- lapply(arquivos, colnames)</code></pre>
+<p>A primeira vista, vemos uma grande diferença entre o <code>map</code> e o <code>for</code>. O <code>map</code> é muito mais simples, legível e já retorna uma lista com o nome de nossos bancos, enquanto o <code>for</code> custa muitas linhas e necessita de formatação dos dados no final. Entretanto, não é tão visível as vantagens do <code>map</code> para o <code>lapply</code>. Decerto, as vantagens não são substanciais, mas o <code>map</code> possui auxiliares que permitem escrever um código compacto para funções anônimas e em um contexto real não usaremos apenas o <code>map</code> tornando o pacote <code>purrr</code> muito útil.</p>
+</div>
+<div id="map2-pmap-vs-for-vs-apply" class="section level2">
+<h2>map2 / pmap vs for vs apply</h2>
+<p>As funções <code>map2</code> e <code>pmap</code> funcionam de forma similiar, sendo que enquanto a <code>map2</code> aceita duas listas e retorna o resultado em uma, a <code>pmap</code> aceita três ou mais.</p>
+<p><strong>Com 2 listas</strong>: para esse exemplo iremos comparar o tamanho de dois objetos e vamos aplicá-la nas listas nomes_coluna e nomes_coluna_base:</p>
+<pre><code>igual_ou_diferente &lt;- function(x, y) {
+  if (length(x) == length(y)) return(T)
+  else return(F)
+}</code></pre>
+<p>A função <code>map2</code>:</p>
+<pre><code>resultado2purrr &lt;- map2(nomes_colunas, nomes_colunas_base, igual_ou_diferente)</code></pre>
+<p>O comando <code>for</code>:</p>
+<pre><code>resultado2base &lt;- list()
+for (i in seq_along(nomes_colunas)) {
+  resultado2base[i] &lt;- igual_ou_diferente(nomes_colunas[i], nomes_colunas_base[i]) 
+}</code></pre>
+<p>O comando <code>lapply</code>:</p>
+<pre><code>resultado2apply &lt;- lapply(nomes_colunas, nomes_colunas_apply, FUN = igual_ou_diferente)</code></pre>
+<p><strong>Com 3 listas</strong>:</p>
+<pre><code>igual_ou_diferente3 &lt;- function(x, y, z) {
+  if (length(x) == length(y) || length(x) == length(z)) return(T)
+  else return(F)
+}</code></pre>
+<p>A função <code>pmap</code>:</p>
+<pre><code>resultado3purrr &lt;- pmap(list(nomes_colunas, nomes_colunas_apply, nomes_colunas_base), igual_ou_diferente3)</code></pre>
+<p>O comando <code>for</code>:</p>
+<pre><code>resultado3base &lt;- list()
+for (i in seq_along(nomes_colunas)) {
+  resultado3base[i] &lt;- igual_ou_diferente3(nomes_colunas[i], nomes_colunas_base[i], nomes_colunas_apply[i]) 
+}</code></pre>
+<p>O comando <code>lapply</code>:</p>
+<pre><code>resultado3apply &lt;- lapply(nomes_colunas, nomes_colunas_apply, nomes_colunas_base, FUN = igual_ou_diferente3)</code></pre>
+<p>Por meio desses exemplos, observamos mais uma vez como essas operações quando realizadas com um <code>for</code> parecem possuir maior complexidade na leitura e custam mais linhas, enquanto o <code>purrr</code> e o <code>apply</code> são mais simples.</p>
+<div id="o-caso-especial-imap" class="section level3">
+<h3>o caso especial imap</h3>
+<p>Visto que o <code>imap</code> é um caso particular do <code>map2</code>, a seguir estamos interessados em obter não só os transportes como também sua posição (ordem):</p>
+<pre><code>freq_viagem[[1]] &lt;- freq_viagem[[1]] %&gt;% 
+  arrange(desc(n))</code></pre>
+<p>A função <code>imap</code>:</p>
+<pre><code>ordem_do_transporte_purrr &lt;- imap(freq_viagem[[1]][[1]], ~paste(.x, .y, sep = &quot;/&quot;))</code></pre>
+<p>O comando <code>for</code>:</p>
+<pre><code>ordem_do_transporte_base &lt;- list()
+for (i in seq_along(freq_viagem[[1]][[1]])) {
+  ordem_do_transporte_base[i] &lt;- paste(freq_viagem[[1]][[1]][[i]], i, sep = &#39;/&#39;)
+}</code></pre>
+</div>
+</div>
+<div id="walk-vs-for" class="section level2">
+<h2>walk vs for</h2>
+<p>A função <code>walk</code> funciona de forma similiar ao <code>map</code> e suas variações, mas a usamos quando estamos interessados em aplicar uma função que performa uma ação (logo a mesma não possui retorno de dados)</p>
+<p>No exemplo a seguir, buscamos imprimir na tela a frequência do meio de transporte, origem e destino das viagens registradas em 2021:</p>
+<p>A função <code>walk</code>:</p>
+<pre><code>walk(freq_viagem, print)</code></pre>
+<p>O comando <code>for</code>:</p>
+<pre><code>for (i in seq_along(freq_viagem)){
+  print(freq_viagem[i])
+}</code></pre>
+<p>Mais uma vez, notamos que a função <code>walk</code> possui uma legibilidade melhor que o <code>for</code>.</p>
+</div>
+<div id="pluck-vs-seleção-nativa" class="section level2">
+<h2>pluck vs seleção nativa</h2>
+<p>Por fim, para esse exemplo buscamos selecionar um elemento pelo seu índice. Primeiramente, selecionamos o país mais visitado:</p>
+<pre><code>freq_viagem[[3]] &lt;- freq_viagem[[3]] %&gt;% 
+  arrange(desc(n))</code></pre>
+<p>A função <code>pluck</code>:</p>
+<pre><code>pais_mais_visitados_purrr &lt;- pluck(freq_viagem, 3, 1, 1)</code></pre>
+<p>Pelo R:</p>
+<pre><code>pais_mais_visitados_base &lt;- freq_viagem[[3]][[1]][[1]]</code></pre>
+<p>Ao saber o índice exato que desejamos, aplicamos das duas formas. Decerto, é uma operação simples para o R básico, porém a legibilidade novamente é muito mais fácil pelo <code>purrr</code> após saber a finalidade da função do que pelo R cheio de colchetes.</p>
 </div>
 </div>
 
