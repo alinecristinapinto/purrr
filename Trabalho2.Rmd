@@ -52,3 +52,12 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas *i
 
 * Visto que R é fracamente tipado, as funções `map` possuem seu tipo de retorno descritas: `map_int`, `map_dbl`, etc.
 
+### Tutorial
+
+Para esse relatório, abordaremos algumas funções do pacote `purrr` com o banco de dados de `viagens` que pode ser encontrado [aqui](http://www.portaltransparencia.gov.br/download-de-dados/viagens). Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Podemos também importar o *tidyverse*.\
+```{r}
+require(purrr)
+```
+
+
+
