@@ -33,3 +33,7 @@ knitr::opts_chunk$set(echo = TRUE)
 </div>
 
 ### Programação Funcional e purrr
+
+<p>
+**Programação Funcional** é um paradigma de programação 
+</p>
