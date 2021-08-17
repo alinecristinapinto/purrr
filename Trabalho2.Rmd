@@ -54,9 +54,9 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas *i
 
 # Tutorial
 
-Para esse relatório, abordaremos algumas funções do pacote `purrr` com o banco de dados de `viagens realizadas a serviço` que pode ser encontrado [aqui](http://www.portaltransparencia.gov.br/download-de-dados/viagens). Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Podemos também importar o *tidyverse*.\
+Para esse relatório, abordaremos algumas funções do pacote `purrr` com o banco de dados de `viagens realizadas a serviço` que pode ser encontrado [aqui](http://www.portaltransparencia.gov.br/download-de-dados/viagens). Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Como o *purrr* é um pacote do *tidyverse*, e, ao longo do tutorial, usaremos funções de outros de seus pacotes, importaremos todo o *tidyverse*.\
 ```{r}
-require(purrr)
+library(tidyverse)
 ```
 
 
@@ -91,44 +91,6 @@ A família map tem como objetivo substituir os laços do for, com ela, laços qu
 .f: Uma função, fórmula ou vetor não necessariamente imutável
 .id: Para strings ou .if strings
 
-### Exemplo
-```
-map(~vroom::vroom(.x, locale = locale(encoding = "ISO-8859-1"))) %>% 
-  set_names(nomes_arquivos)
-
-```
-
-## Modify
-
-A familia modify é um atalho para x[[i]] <- f(x[[i]]); return(x), onde você altera apenas um elemento e mantém o restante.
-
-modify_if(): modifica elementos que possuem uma característica previamente determinada
-modify_at(): modifica elementos por nomes ou posições.
-modify_depth(): modifica elementos pelo nível ou sua posição no data frame.
-
-* Argumentos
-
-  .x: Um vetor imutável ou uma lista 
-  
-  .f: Uma função, fórmula ou vetor não necessariamente imutável
-  
-  …: Argumentos adicionais para .f.
-  
-  .p: um vetor lógico do mesmo tamanho que .x
-  
-  .at: Um vetor de strings ou um vetor numérico de posições.
-  
-  .depth: nível ou sua posição no data frame.
-  
-  .ragged.: se aplicará aos erros 
-  
-
-### Exemplo
-```
-modify(~{filter(.x, value != "Brasil") %>% top_n(10)})
-
-```
-
 ## Set Names
 
 set_names define nomes em um vetor.
@@ -141,9 +103,19 @@ set_names define nomes em um vetor.
 
 ### Exemplo
 ```
-set_names(nomes_arquivos)
+nomes_arquivos <- c("Pagamento", "Passagem", "Trecho", "Viagem")
+
+arquivos <- glue::glue('2021_{nomes_arquivos}.csv') %>% 
+  map(~vroom::vroom(.x, locale = locale(encoding = "ISO-8859-1"))) %>% 
+  set_names(nomes_arquivos)
 
 ```
+
+Inicialmente construímos um vetor com todos os nomes dos arquivos, usando a função *glue* do pacote *glue* (presente no *tidyverse*), que provê um substituto mais moderno da função *paste*. A função *map* passará cada um desses nomes de arquivos para a função *vroom* do pacote *vroom* (também presente no *tidyverse*), que lerá os dados. Os arquivos, lidos como dataframes, serão salvos em uma lista, formato de saída padrão do *map*. Por fim, a função *set_names* do purrr dará um nome a cada elemento-base da lista, isto é, dará um nome a cada um dos quatro banco de dados. 
+
+Duas observações:
+* O código *glue::glue('2021_{nomes_arquivos}.csv')* é, no fundo, uma aplicação de *map*. Ele pode ser reescrito como: *map_chr(nomes_arquivos, paste0('2021_1', .x, '.csv'))*.
+* Outra função para leitura de dados, como a *read.csv* ou a *data.table::fread*, poderia ser usada. A função *vroom* foi escolhida porque utiliza a abordagem de *lazy evaluation* para a leitura de dados, conceito proveniente da programação funcional (que tem tudo a ver com o pacote purrr) e que, nesse caso, acelera a leitura de dados. Essa função é ideal para leitura de bases largas em que você já sabe relativamente bem o que você vai usar daqueles dados. Leia mais [aqui](https://vroom.r-lib.org/).
 
 ## Pluck
 
@@ -163,6 +135,8 @@ set_names(nomes_arquivos)
 walk(nomes_arquivos,
      ~View(pluck(arquivos, .x), title = .x))
 ```
+
+O código acima permite a visualização dos quatro bancos de dados através de uma única linha de código. Poderia ser utilizado *map* no lugar de *walk*, sem problemas, mas o *walk* foi feito especialmente para esses casos em que o principal objetivo da função não é retornar algo em específico, mas gerar efeitos colaterais (nesse caso, o efeito colateral da função *View* é abrir uma janela nova que exibe o dataframe). O código *pluck(arquivos, .x)* extrai o .x-ésimo banco (entre os quatro possíveis) em *arquivos*.
 
 ## Reduce
 
@@ -189,10 +163,13 @@ Reduz uma lista a um único valor, aplicando uma função binaria
   
 
 ### Exemplo
-```
-dados_juntos <- reduce(arquivos, inner_join)
 
 ```
+nomes_colunas <- map(arquivos, colnames)
+reduce(nomes_colunas, intersect) # Apenas pra ver qual coluna está em todas
+```
+
+A próxima etapa será juntar todos os bancos de dados para podermos trabalhar melhor. Antes disso, contudo, vamos observar quais colunas estão presentes em todos os bancos, e qual o tamanho de cada banco. Salvamos apenas os nomes de colunas em *nomes_colunas*, usando uma aplicação simples da função *map*, que retorna uma lista de vetores de caracteres. A função *intersect* retorna a intersecção entre apenas dois argumentos. Suponha que se queira a interseção entre A, B e C. Uma maneira de fazer isso é através de *intersect(intersect(intersect(A, B), C), D)*. A função *reduce(list(A, B, C, D), intersect)* faz exatamente isso. 
 
 ## Imap 
 lmap: Aplica uma função a elementos de lista de um vetor, eles operam exclusivamente em funções que pegam e retornam uma lista (ou data frames). Assim, em vez de mapear os elementos de uma lista (como em .x[[i]]), eles aplicam uma função .f a cada subconjunto de tamanho 1 dessa lista (como em .x[i]). Chamamos esses elementos de elementos de lista).   
@@ -228,13 +205,75 @@ lmap: Aplica uma função a elementos de lista de um vetor, eles operam exclusiv
   .id: Para strings ou .if strings
 
 ### Exemplo
-```
-graficos_finais <- imap(freq_viagem, graficos_freq_viagem)
 
+```
 arquivos %>% imap_dfc( # Apenas pra ver o número de linhas de cada banco
   ~nrow(pluck(arquivos, .y)))
 
 ```
+
+Esse exemplo faz a segunda parte das análises iniciais: computa o número de linhas de cada banco. Se usássemos *map* no lugar de *imap*, teríamos acesso rápido apenas ao banco em si, mas não ao seu indexador (seu nome) dentro da lista, que é o que usámos para acessá-lo com *pluck*.
+
+```
+dados_juntos <- reduce(arquivos, inner_join)
+
+dados_juntos <- dados_juntos %>% 
+  select(c(1, 4, 6, 9:24, 26, 40, 42, 44))
+
+dados_juntos <- dados_juntos %>% 
+  distinct(.keep_all = T)
+
+dados_viagem_gasto <- dados_juntos %>% 
+  filter(`Tipo de pagamento` == "PASSAGEM") %>% 
+  select(c(1:3, 5:12))
+
+freq_viagem <- dados_viagem_gasto %>% 
+  select(c(1, 5, 6, 9)) %>%
+  distinct(.keep_all = T) %>% select(-1) %>% 
+  map(~count(
+    as_tibble(.x), across(everything())
+  ))
+
+
+```
+
+Juntamos todos os bancos, em um uso bastante natural e agradável da função *reduce*. A função *inner_join* do pacote *dplyr* manterá apenas as linhas cujas colunas do Identificador sejam comuns em todos os bancos. Depois, ainda usando dplyr, fazemos algumas modificações rotineiras, e criamos dataframes específicos relativos à frequência de viagem e aos gastos. Usamos a função *across*, que, embora seja do *dplyr*, é mais uma ferramenta que ajuda a deixar o código mais próximo da programação funcional. 
+
+## Modify
+
+A familia modify é um atalho para x[[i]] <- f(x[[i]]); return(x), onde você altera apenas um elemento e mantém o restante.
+
+modify_if(): modifica elementos que possuem uma característica previamente determinada
+modify_at(): modifica elementos por nomes ou posições.
+modify_depth(): modifica elementos pelo nível ou sua posição no data frame.
+
+* Argumentos
+
+  .x: Um vetor imutável ou uma lista 
+  
+  .f: Uma função, fórmula ou vetor não necessariamente imutável
+  
+  …: Argumentos adicionais para .f.
+  
+  .p: um vetor lógico do mesmo tamanho que .x
+  
+  .at: Um vetor de strings ou um vetor numérico de posições.
+  
+  .depth: nível ou sua posição no data frame.
+  
+  .ragged.: se aplicará aos erros 
+  
+
+### Exemplo
+```
+
+freq_viagem <- freq_viagem %>% 
+  modify(~{filter(.x, value != "Brasil") %>% top_n(10)})
+
+```
+
+*freq_viagem* é uma lista de dataframes, e cada dataframe é modificado de acordo com o código acima.
+
 
 ## Slowly e insistently
 Ambas as funções determinam o tempo para a próxima chamada de função.
@@ -269,8 +308,59 @@ A função *rate_delay* cria configurações para taxas de atraso, na mesma fam�
 
 ### Exemplo
 ```
-walk(graficos_finais_gasto_porviagem, slowly(print, rate = rate_delay(5)))
+
+graficos_freq_viagem <- function (dados, nomes) {
+  dados %>% 
+    ggplot(aes(fct_infreq(value), n)) + 
+    geom_col() +
+    coord_flip() +
+    labs(x = nomes,
+         y = "Contagem",
+         title = glue::glue("Contagem de {nomes}"))
+}
+
+graficos_finais <- imap(freq_viagem, graficos_freq_viagem)
+
+walk(graficos_finais, slowly(print, rate = rate_delay(5)))
 
 ```
 
+Aqui mostramos um uso da função *slowly*. Serão feitos três gráficos semelhantes, um para cada um dos bancos de dados em *freq_viagem* (lembrando que é uma lista de dataframes). É criada uma função que gerará o gráfico de acordo com o dataframe passado, os gráficos são gerados através de *imap* (note que a função dos gráficos recebe exatamente os dois argumentos .x e .y que *imap* passa) e salvos em *graficos_finais*. A função *walk* os exibe, com um intervalo de tempo entre eles, colocado usando a função *slowly*.
+
+Outro exemplO (usando map2, cross2 e passando funções como argumentos):
+
+```
+gasto_porviagem <- dados_viagem_gasto %>% 
+  mutate(Valor = as.numeric(str_replace(Valor, ",", "."))) %>% 
+  group_by(`Identificador do processo de viagem`) %>%
+  summarise(across(everything(), 
+                   ~ifelse(is.numeric(.x), sum(.x), first(.x)))) %>% 
+  mutate(`Tipo de viagem` = ifelse(
+    `País - Origem ida` != `País - Destino ida`, "Internacional",
+    ifelse(`UF - Origem ida` != `UF - Destino ida`, "Interestadual",
+           "Intraestadual"))) %>% 
+  ungroup() %>% 
+  select(-c(6:11))
+
+variaveis_analise_gasto <- c("Nome do órgão superior", "Meio de transporte", "Tipo de viagem")
+funcoes_analise_gasto <- list(geom_violin(), geom_boxplot(), geom_jitter())
+combinacoes_analise_gasto <- cross2(funcoes_analise_gasto,
+                                    variaveis_analise_gasto)
+
+graficos_gasto_porviagem <- function (variavel, funcao_geom) {
+  gasto_porviagem %>% 
+    ggplot(aes(get(variavel), Valor)) +
+    labs(x = variavel,
+         y = "Gasto da viagem",
+         title = glue::glue("Gasto da viagem de acordo com {str_to_lower(variavel)}")) +
+    funcao_geom
+}
+
+graficos_finais_gasto_porviagem <- map2(
+  .x = map(combinacoes_analise_gasto, 1), 
+  .y = map(combinacoes_analise_gasto, 2),
+  ~graficos_gasto_porviagem(.y, .x))
+
+walk(graficos_finais_gasto_porviagem, slowly(print, rate = rate_delay(5)))
+```
 
