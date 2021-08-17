@@ -4,5 +4,3 @@
 .Ruserdata
 .DS_Store
 
-# ignore all html files
-*.html
