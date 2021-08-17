@@ -170,12 +170,15 @@ resultado3apply <- lapply(nomes_colunas, nomes_colunas_apply, nomes_colunas_base
 #O imap é um caso particular do map2, quando uma função é aplicada a uma lista e seu
 #respectivo índice, que pode ser considerado uma segunda lista.
 
+freq_viagem[[1]] <- freq_viagem[[1]] %>% 
+  arrange(desc(n))
 ordem_do_transporte_purrr <- imap(freq_viagem[[1]][[1]], ~paste(.x, .y, sep = "/"))
 
 #Fazendo o mesmo com R base
-
-
-
+ordem_do_transporte_base <- list()
+for (i in seq_along(freq_viagem[[1]][[1]])) {
+  ordem_do_transporte_base[i] <- paste(freq_viagem[[1]][[1]][[i]], i, sep = '/')
+}
 
 #Walk----
 #A função walk é muito similar à função map contudo ela não retorna nada na tela, 
@@ -195,5 +198,13 @@ for (i in seq_along(freq_viagem)){
 #A função walk possui variações como walk2, pwalk, iwalk, etc que seguem a mesma 
 #lógica das variações da função map.
 
+#Pluck ----
+#A função pluck seleciona um elemento pelo nome ou pelo índice
+freq_viagem[[3]] <- freq_viagem[[3]] %>% 
+  arrange(desc(n))
 
+pais_mais_visitados_purrr <- pluck(freq_viagem, 3, 1, 1)
+
+#Usando o R base:
+pais_mais_visitados_base <- freq_viagem[[3]][[1]][[1]]
 
