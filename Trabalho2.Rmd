@@ -21,7 +21,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### purrr? 
+# purrr? 
 
 <div style="display:flex; align-items:center; justify-content:space-between">
   <img src="https://purrr.tidyverse.org/logo.png" 
@@ -32,7 +32,7 @@ knitr::opts_chunk$set(echo = TRUE)
   </p>
 </div>
 
-### Programação Funcional (PF) e purrr
+# Programação Funcional (PF) e purrr
 
 <p>
 [Programação Funcional](https://towardsdatascience.com/why-developers-are-falling-in-love-with-functional-programming-13514df4048e), de forma simplificada, é um paradigma de programação que prega pela construção de funções para *variáveis imutáveis* com a finalidade de evitar *side effects*. Sendo assim, a escrita de código é feita apenas através de *funções puras*. *Funções puras* nunca modificam o objeto que recebem, apenas criam novas como resposta, diferente de funções impuras que podem depender de alguma variável global e como resultado gerar respostas diferentes para uma mesma entrada.
@@ -52,16 +52,15 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas *i
 
 * Visto que R é fracamente tipado, as funções `map` possuem seu tipo de retorno descritas: `map_int`, `map_dbl`, etc.
 
-### Tutorial
+# Tutorial
 
 Para esse relatório, abordaremos algumas funções do pacote `purrr` com o banco de dados de `viagens` que pode ser encontrado [aqui](http://www.portaltransparencia.gov.br/download-de-dados/viagens). Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Podemos também importar o *tidyverse*.\
 ```{r}
 require(purrr)
 ```
 
-# Funções utilizadas
 
-A partir daqui serão apresentadas as funções de uma maneira mais clara sobre a sua utilização. 
+A seguir serão apresentadas as funções de uma maneira mais clara sobre a sua utilização. 
 
 ## Map 
 
