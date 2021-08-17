@@ -297,6 +297,9 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <p>A família map tem como objetivo substituir os laços do for, com ela, laços que teriam inúmeras linhas ficam resumidos a apenas uma.</p>
 <ul>
 <li><p>map(): Aplica uma função em uma lista sem a necessidade de criar laços para cada objeto, ela retorna uma lista com o mesmo comprimento (.x) e permite que valores sejam fixados.</p></li>
+<li><p>map2(): Funciona de maneira semelhante a map(), mas se diferencia ao aplicar uma função em 2 listas distintas simultaneamente retornando apenas uma lista.</p></li>
+<li><p>imap(): Aplica uma função a elementos de lista de um vetor, eles operam exclusivamente em funções que pegam e retornam uma lista (ou data frames). Assim, em vez de mapear os elementos de uma lista (como em .x[[i]]), eles aplicam uma função .f a cada subconjunto de tamanho 1 dessa lista (como em .x[i]). Chamamos esses elementos de elementos de lista).</p></li>
+<li><p>pmap(): Aplica uma função a n elementos ao mesmo tempo, retornando uma única lista como resultado.</p></li>
 <li><p>Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado</p>
 <p>map_lgl(.x, .f, …): Para valores lógicos (booleanos)</p>
 <p>map_chr(.x, .f, …): Para caracteres (strings)</p>
@@ -304,10 +307,46 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <p>map_dbl(.x, .f, …): Para números reais (vetor duplo)</p>
 <p>map_dfr(.x, .f, …, .id = NULL): Retorna um data frame onde as linhas estão vinculadas a uma coluna</p>
 <p>map_dfc(.x, .f, …): Retorna um data frame onde as colunas estão vinculadas a uma linha</p></li>
-<li><p>walk(.x, .f, …): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais, imprimir coisas na tela e salvar diversos arquivos de uma vez.</p></li>
 <li><p>map_if(): Aplica a função apenas para os elementos de .x que se enquadram em uma determinada característica.</p></li>
-<li><p>Argumentos .x: Um vetor imutável ou uma lista .f: Uma função, fórmula ou vetor não necessariamente imutável .id: Para strings ou .if strings</p></li>
+<li><p>map_at(): Aplica a função apenas para elementos em determinada posição ou nome</p></li>
+<li><p>Argumentos</p>
+<p>.x: Um vetor imutável ou uma lista</p>
+<p>.f: Uma função, fórmula ou vetor não necessariamente imutável</p>
+<p>.id: Para strings ou .if strings</p></li>
 </ul>
+<p>** Observação: Todas as funções da família map funcionam com os mesmos sufixos.</p>
+</div>
+<div id="walk" class="section level2">
+<h2>Walk</h2>
+<ul>
+<li><p>walk(): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais, imprimir coisas na tela e salvar diversos arquivos de uma vez.</p></li>
+<li><p>Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado</p>
+<p>walk_lgl(.x, .f, …): Para valores lógicos (booleanos)</p>
+<p>walk_chr(.x, .f, …): Para caracteres (strings)</p>
+<p>walk_int(.x, .f, …): Para números inteiros</p>
+<p>walk_dbl(.x, .f, …): Para números reais (vetor duplo)</p>
+<p>walk_dfr(.x, .f, …, .id = NULL): Retorna um data frame onde as linhas estão vinculadas a uma coluna</p>
+<p>walk_dfc(.x, .f, …): Retorna um data frame onde as colunas estão vinculadas a uma linha</p></li>
+<li><p>walk_if(): Aplica a função apenas para os elementos que se enquadram em uma determinada característica .x.</p></li>
+<li><p>walk_at(): Aplica a função apenas para elementos em determinada posição ou nome</p></li>
+<li><p>Argumentos</p>
+<p>.x: Um vetor imutável ou uma lista</p>
+<p>.f: Uma função, fórmula ou vetor não necessariamente imutável</p>
+<p>.id: Para strings ou .if strings</p></li>
+</ul>
+<div id="exemplo" class="section level3">
+<h3>Exemplo</h3>
+<pre><code>walk(nomes_arquivos,
+     ~View(pluck(arquivos, .x), title = .x))
+
+nomes_colunas &lt;- map(arquivos, colnames)
+reduce(nomes_colunas, intersect) # Apenas pra ver qual coluna está em todas
+arquivos %&gt;% imap_dfc( # Apenas pra ver o número de linhas de cada banco
+  ~nrow(pluck(arquivos, .y)))
+
+dados_juntos &lt;- reduce(arquivos, inner_join)</code></pre>
+<p>Dentro da variável freq_viagem existem três tabelas e a função walk foi utilizada para printar as tabelas presente nela.</p>
+</div>
 </div>
 <div id="set-names" class="section level2">
 <h2>Set Names</h2>
@@ -317,7 +356,7 @@ Por conta de sua natureza, a Programação Funcional é perfeita para tarefas <e
 <p>.x: Um vetor para nomear</p>
 <p>nm: Nomes que serão definidos.</p></li>
 </ul>
-<div id="exemplo" class="section level3">
+<div id="exemplo-1" class="section level3">
 <h3>Exemplo</h3>
 <pre><code>nomes_arquivos &lt;- c(&quot;Pagamento&quot;, &quot;Passagem&quot;, &quot;Trecho&quot;, &quot;Viagem&quot;)
 
@@ -338,7 +377,7 @@ arquivos &lt;- glue::glue(&#39;2021_{nomes_arquivos}.csv&#39;) %&gt;%
 <p>…: Argumentos que serão indexados ao objeto podendo ser posições, strings ou funções internas.</p>
 <p>attr: um nome atribuido como string</p></li>
 </ul>
-<div id="exemplo-1" class="section level3">
+<div id="exemplo-2" class="section level3">
 <h3>Exemplo</h3>
 <pre><code>walk(nomes_arquivos,
      ~View(pluck(arquivos, .x), title = .x))</code></pre>
@@ -359,59 +398,11 @@ arquivos &lt;- glue::glue(&#39;2021_{nomes_arquivos}.csv&#39;) %&gt;%
 <p>…: Argumentos adicionais para .f.</p>
 <p>.init: define que o primeiro valor de .x seja utilizado na acumulação</p></li>
 </ul>
-<div id="exemplo-2" class="section level3">
+<div id="exemplo-3" class="section level3">
 <h3>Exemplo</h3>
 <pre><code>nomes_colunas &lt;- map(arquivos, colnames)
 reduce(nomes_colunas, intersect) # Apenas pra ver qual coluna está em todas</code></pre>
 <p>A próxima etapa será juntar todos os bancos de dados para podermos trabalhar melhor. Antes disso, contudo, vamos observar quais colunas estão presentes em todos os bancos, e qual o tamanho de cada banco. Salvamos apenas os nomes de colunas em <em>nomes_colunas</em>, usando uma aplicação simples da função <em>map</em>, que retorna uma lista de vetores de caracteres. A função <em>intersect</em> retorna a intersecção entre apenas dois argumentos. Suponha que se queira a interseção entre A, B e C. Uma maneira de fazer isso é através de <em>intersect(intersect(intersect(A, B), C), D)</em>. A função <em>reduce(list(A, B, C, D), intersect)</em> faz exatamente isso.</p>
-</div>
-</div>
-<div id="imap" class="section level2">
-<h2>Imap</h2>
-<p>lmap: Aplica uma função a elementos de lista de um vetor, eles operam exclusivamente em funções que pegam e retornam uma lista (ou data frames). Assim, em vez de mapear os elementos de uma lista (como em .x[[i]]), eles aplicam uma função .f a cada subconjunto de tamanho 1 dessa lista (como em .x[i]). Chamamos esses elementos de elementos de lista).</p>
-<ul>
-<li><p>imap(): aplica uma função a cada elemento de lista de um vetor e seu índice</p></li>
-<li><p>Niveladores de resultado: Retornam vetores classificados pelo tipo do resultado</p>
-<p>imap_lgl(.x, .f, …): Para valores lógicos (booleanos)</p>
-<p>imap_chr(.x, .f, …): Para caracteres (strings)</p>
-<p>imap_int(.x, .f, …): Para números inteiros</p>
-<p>imap_dbl(.x, .f, …): Para números reais (vetor duplo)</p>
-<p>imap_dfr(.x, .f, …, .id = NULL): Retorna um data frame onde as linhas estão vinculadas a uma coluna</p>
-<p>imap_dfc(.x, .f, …): Retorna um data frame onde as colunas estão vinculadas a uma linha</p>
-<p>iwalk(.x, .f, …): Não retorna nada nas interações, mas é útil para mostrar os efeitos colaterais e imprimir coisas na tela.</p></li>
-<li><p>imap_if(): Aplica a função apenas para os elementos que se enquadram em uma determinada característica .x.</p></li>
-<li><p>imap_at(): Aplica a função apenas para elementos em determinada posição ou nome</p></li>
-<li><p>Argumentos .x: Um vetor imutável ou uma lista</p>
-<p>.f: Uma função, fórmula ou vetor não necessariamente imutável</p>
-<p>.id: Para strings ou .if strings</p></li>
-</ul>
-<div id="exemplo-3" class="section level3">
-<h3>Exemplo</h3>
-<pre><code>arquivos %&gt;% imap_dfc( # Apenas pra ver o número de linhas de cada banco
-  ~nrow(pluck(arquivos, .y)))
-</code></pre>
-<p>Esse exemplo faz a segunda parte das análises iniciais: computa o número de linhas de cada banco. Se usássemos <em>map</em> no lugar de <em>imap</em>, teríamos acesso rápido apenas ao banco em si, mas não ao seu indexador (seu nome) dentro da lista, que é o que usámos para acessá-lo com <em>pluck</em>.</p>
-<pre><code>dados_juntos &lt;- reduce(arquivos, inner_join)
-
-dados_juntos &lt;- dados_juntos %&gt;% 
-  select(c(1, 4, 6, 9:24, 26, 40, 42, 44))
-
-dados_juntos &lt;- dados_juntos %&gt;% 
-  distinct(.keep_all = T)
-
-dados_viagem_gasto &lt;- dados_juntos %&gt;% 
-  filter(`Tipo de pagamento` == &quot;PASSAGEM&quot;) %&gt;% 
-  select(c(1:3, 5:12))
-
-freq_viagem &lt;- dados_viagem_gasto %&gt;% 
-  select(c(1, 5, 6, 9)) %&gt;%
-  distinct(.keep_all = T) %&gt;% select(-1) %&gt;% 
-  map(~count(
-    as_tibble(.x), across(everything())
-  ))
-
-</code></pre>
-<p>Juntamos todos os bancos, em um uso bastante natural e agradável da função <em>reduce</em>. A função <em>inner_join</em> do pacote <em>dplyr</em> manterá apenas as linhas cujas colunas do Identificador sejam comuns em todos os bancos. Depois, ainda usando dplyr, fazemos algumas modificações rotineiras, e criamos dataframes específicos relativos à frequência de viagem e aos gastos. Usamos a função <em>across</em>, que, embora seja do <em>dplyr</em>, é mais uma ferramenta que ajuda a deixar o código mais próximo da programação funcional.</p>
 </div>
 </div>
 <div id="modify" class="section level2">
