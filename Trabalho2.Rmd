@@ -1,28 +1,35 @@
 ---
-title: "Trabalho2 - purr"
-output: html_document
+title: "Trabalho 2 - purrr"
+author: |
+  | <span style='font-size: 14px'>Aline Cristina (2020031412)</span>
+  | <span style='font-size: 14px'>Herikeli Mendes (2020031560)</span>   
+  | <span style='font-size: 14px'>Marcel Zanetti (2020031706)</span> 
+  | <span style='font-size: 14px'>Renan Machado (2020031773)</span> 
+  | <span style='font-size: 14px'>Sofia Aguiar (2020031811)</span> 
+output: 
+    html_document:
+        highlight: textmate
+        theme: spacelab
+        toc: yes
+        toc_float:
+            collapsed: yes
+            smooth_scroll: yes 
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+### purrr? 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+<div style="display:flex; align-items:center; justify-content:space-between">
+  <img src="https://purrr.tidyverse.org/logo.png" 
+       alt="Logo do pacote purrr - Tidyverse"
+       style="height: 60px"/>
+  <p style="margin-left:16px">
+    *purrr* é um pacote do *tidyverse* que fornece um conjunto completo e consistente de ferramentas para se trabalhar com funções e vetores. Ele é conhecido por suas funções `map` que vem como resposta às funções da família *apply* do R, bem como algumas novas funções para manipulação listas **com uma abrodagem de Programação Funcional**.
+  </p>
+</div>
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Programação Funcional e purrr
