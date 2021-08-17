@@ -28,8 +28,36 @@ knitr::opts_chunk$set(echo = TRUE)
        alt="Logo do pacote purrr - Tidyverse"
        style="height: 60px"/>
   <p style="margin-left:16px">
-    *purrr* é um pacote do *tidyverse* que fornece um conjunto completo e consistente de ferramentas para se trabalhar com funções e vetores. Ele é conhecido por suas funções `map` que vem como resposta às funções da família *apply* do R, bem como algumas novas funções para manipulação listas **com uma abrodagem de Programação Funcional**.
+    *purrr* é um pacote do *tidyverse* que fornece um conjunto completo e consistente de ferramentas para se trabalhar com funções e vetores. Ele é conhecido por suas funções `map` que vem como resposta às funções da família *apply* do R, bem como algumas novas funções para manipulação listas **com uma abrodagem por Programação Funcional**.
   </p>
 </div>
 
-### Programação Funcional e purrr
+### Programação Funcional (PF) e purrr
+
+<p>
+[Programação Funcional](https://towardsdatascience.com/why-developers-are-falling-in-love-with-functional-programming-13514df4048e), de forma simplificada, é um paradigma de programação que prega pela construção de funções para *variáveis imutáveis* com a finalidade de evitar *side effects*. Sendo assim, a escrita de código é feita apenas através de *funções puras*. *Funções puras* nunca modificam o objeto que recebem, apenas criam novas como resposta, diferente de funções impuras que podem depender de alguma variável global e como resultado gerar respostas diferentes para uma mesma entrada.
+</p>
+<p>
+Loops não são uma prática de PF. Para tornar o **código mais curto, rápido, legível e garantir que não haverá mudança de estado**, três funções muito conhecidas são introduzidas na abstração dessas estruturas: `map`, `reduce` e `filter`. Isso não significa que todo código funcional utilizará essas funções, mas é importante citá-los para se observar suas semelhantas com o **purrr**.
+</p>
+
+#### Motivação
+<p>
+Por conta de sua natureza, a Programação Funcional é perfeita para tarefas *in demand* e para lidar com grandes bancos de dados (big data), consequentemente ótima para *análise de dados*. Seguindo essa perspectiva, surge o `purrr` com o objetivo não de tentar ser uma "nova linguagem puramente funcional do R", mas sim prover algo semelhante a uma PF enquanto o código se pareça e funcione como R:
+</p>
+
+* Ao invés de utlizarmos `currynig` (técnica para converter uma função que recebe vários argumentos em uma sequência de funções com um único argumento), podemos utilizar `...` para passar argumentos extras.
+
+* Funções anônimas ficaram menos verbosas (o que é muito útil ao usar as funções de `map` e `reduce`). Para funções unárias, `~ .x + 1` é equivalente a `function (.x) .x + 1`. Para cadeias de funções de transformação, `. %>% f ()%>% g ()` é equivalente a `function (.). %>% f ()%>% g ()` (atalho fornecido por `magrittr`).
+
+* Visto que R é fracamente tipado, as funções `map` possuem seu tipo de retorno descritas: `map_int`, `map_dbl`, etc.
+
+### Tutorial
+
+Para esse relatório, abordaremos algumas funções do pacote `purrr` com o banco de dados de `viagens` que pode ser encontrado [aqui](http://www.portaltransparencia.gov.br/download-de-dados/viagens). Para começar, precisamos primeiro instalá-lo no computador e depois coloca-lo no ambiente. Podemos também importar o *tidyverse*.\
+```{r}
+require(purrr)
+```
+
+
+
