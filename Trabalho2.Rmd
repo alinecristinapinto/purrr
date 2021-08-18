@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE)
        alt="Logo do pacote purrr - Tidyverse"
        style="height: 60px"/>
   <p style="margin-left:16px">
-    *purrr* é um pacote do *tidyverse* que fornece um conjunto completo e consistente de ferramentas para se trabalhar com funções e vetores. Ele é conhecido por suas funções `map` que vem como resposta às funções da família *apply* do R, bem como algumas novas funções para manipulação listas com uma abrodagem por **Programação Funcional**.
+    *purrr* é um pacote do *tidyverse* que fornece um conjunto completo e consistente de ferramentas para se trabalhar com funções e vetores. Ele é conhecido por suas funções `map` que vem como resposta às funções da família *apply* do R, bem como algumas novas funções para manipulação listas com uma **abordagem por Programação Funcional**.
   </p>
 </div>
 
